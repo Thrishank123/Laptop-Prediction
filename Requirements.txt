@@ -1,4 +1,6 @@
-Pandas
-Matplotlib
-Seaborn
-Scikit-learn
+pandas
+matplotlib
+seaborn
+streamlit
+lightgbm
+scikit-learn
