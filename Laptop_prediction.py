@@ -8,12 +8,29 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
 import warnings
-
 
 warnings.filterwarnings('ignore')
 
+# Custom CSS for styling
+st.markdown("""
+    <style>
+    .sidebar .sidebar-content {
+        background-color: #f0f0f5;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 8px;
+        height: 45px;
+        width: 100%;
+        font-size: 18px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+# Data Loading
 @st.cache_data
 def load_data():
     df = pd.read_csv('laptop_data_cleaned.csv')
@@ -21,15 +38,18 @@ def load_data():
 
 df = load_data()
 
+# Sidebar Navigation
 st.sidebar.title("Navigation")
 option = st.sidebar.selectbox("Select a section", ["Data Exploration", "Price Prediction", "Model Evaluation"])
 
-
 if option == "Data Exploration":
     st.title("Data Exploration and Insights")
+    
+    # Dataset Preview
     st.subheader("Dataset Preview")
     st.write(df.head())
 
+    # Price Distribution
     st.subheader("Price Distribution")
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.histplot(df['Price'], kde=True, bins=30, color='blue', ax=ax)
@@ -38,6 +58,15 @@ if option == "Data Exploration":
     ax.set_ylabel('Frequency')
     st.pyplot(fig)
 
+    # Correlation Heatmap
+    st.subheader("Correlation Heatmap")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    corr = df.corr()
+    sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
+    ax.set_title('Correlation between Features')
+    st.pyplot(fig)
+
+    # RAM vs Price
     st.subheader("RAM vs Price")
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.scatterplot(x='Ram', y='Price', data=df, color='green', ax=ax)
@@ -46,6 +75,7 @@ if option == "Data Exploration":
     ax.set_ylabel('Price (in Lakhs)')
     st.pyplot(fig)
 
+    # Company vs Price (Boxplot)
     st.subheader("Company vs Price")
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.boxplot(x='Company', y='Price', data=df, ax=ax)
@@ -55,15 +85,17 @@ if option == "Data Exploration":
 
     st.subheader("Insights:")
     st.markdown("""
-    - **Price Distribution:** The majority of laptops fall within a certain price range, with some outliers representing higher-end models.
-    - **RAM vs Price:** There is a noticeable correlation between the amount of RAM and the price, suggesting higher RAM results in higher prices.
-    - **Company vs Price:** Different companies tend to have varied pricing strategies, with premium brands pricing higher.
+    - **Price Distribution:** Most laptops are in the mid-price range.
+    - **RAM vs Price:** There’s a positive correlation between RAM and price.
+    - **Company vs Price:** Companies have varied pricing strategies, with premium brands like Apple pricing higher.
+    - **Correlation Heatmap:** Identifies key relationships between features, like the link between SSD and Price.
     """)
 
 elif option == "Price Prediction":
     st.title("Laptop Price Prediction")
     st.subheader("Enter Laptop Specifications")
 
+    # User Input for Prediction
     ram = st.slider('RAM (GB)', min_value=4, max_value=64, value=8, step=4)
     weight = st.slider('Weight (KG)', min_value=1.0, max_value=5.0, value=2.5, step=0.1)
     touchscreen = st.selectbox('Touchscreen', [0, 1], format_func=lambda x: 'Yes' if x == 1 else 'No')
@@ -94,6 +126,7 @@ elif option == "Price Prediction":
 
     user_df = pd.DataFrame([user_data])
 
+    # Data Preprocessing
     df_encoded = pd.get_dummies(df, columns=['Company', 'TypeName', 'Cpu_brand', 'Gpu_brand', 'Os'], drop_first=True)
     scaler = StandardScaler()
     numerical_features = ['Ram', 'Weight', 'TouchScreen', 'Ips', 'Ppi', 'HDD', 'SSD']
@@ -102,11 +135,13 @@ elif option == "Price Prediction":
     user_df = pd.get_dummies(user_df, columns=['Company', 'TypeName', 'Cpu_brand', 'Gpu_brand', 'Os'], drop_first=True)
     user_df[numerical_features] = scaler.transform(user_df[numerical_features])
 
+    # Handle Missing Columns
     missing_cols = set(df_encoded.columns) - set(user_df.columns)
     for col in missing_cols:
         user_df[col] = 0
     user_df = user_df[df_encoded.columns.drop('Price')]
 
+    # Model Selection
     st.subheader("Select Prediction Algorithm")
     algorithm = st.selectbox('Algorithm', ['LightGBM', 'RandomForest', 'LinearRegression'])
 
@@ -118,6 +153,7 @@ elif option == "Price Prediction":
         else:
             model = LinearRegression()
 
+        # Model Training and Prediction
         X = df_encoded.drop('Price', axis=1)
         y = df_encoded['Price']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -125,10 +161,20 @@ elif option == "Price Prediction":
         prediction = model.predict(user_df)
         st.write(f"Estimated Laptop Price: ₹{prediction[0] * 10000:,.2f}")
 
+        # Feature Importance for Tree-based models
+        if algorithm in ['LightGBM', 'RandomForest']:
+            st.subheader("Feature Importance")
+            feature_importances = model.feature_importances_
+            importance_df = pd.DataFrame({
+                'Feature': X.columns,
+                'Importance': feature_importances
+            }).sort_values(by='Importance', ascending=False)
+            st.write(importance_df.head(10))
+
 elif option == "Model Evaluation":
     st.title("Model Evaluation")
 
- 
+    # Data Encoding
     df_encoded = pd.get_dummies(df, columns=['Company', 'TypeName', 'Cpu_brand', 'Gpu_brand', 'Os'], drop_first=True)
     X = df_encoded.drop('Price', axis=1)
     y = df_encoded['Price']
@@ -153,18 +199,3 @@ elif option == "Model Evaluation":
         results[name] = {'MAE': mae, 'MSE': mse, 'RMSE': rmse, 'R2': r2}
 
     st.subheader("Model Comparison")
-    results_df = pd.DataFrame(results).T
-    st.write(results_df)
-
-    st.subheader("Actual vs Predicted Prices (LightGBM)")
-    lgb_model = models['LightGBM']
-    y_pred_lgb = lgb_model.predict(X_test)
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(y_test, y_pred_lgb, alpha=0.5, label="Predicted")
-    ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red', lw=3, label="Ideal")
-    ax.set_xlabel("Actual Price")
-    ax.set_ylabel("Predicted Price")
-    ax.set_title("Actual vs Predicted Laptop Prices (LightGBM)")
-    ax.legend()
-    st.pyplot(fig)
