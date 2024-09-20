@@ -39,8 +39,8 @@ if option == "Data Exploration":
     st.pyplot(fig)
     st.subheader("Insights: ")
     st.markdown("""
-    - **Bell-shaped distribution: The price distribution appears to follow a normal distribution, meaning that most laptops are priced around the average (centered around 11).
-    - **Symmetry: The distribution is relatively symmetrical, implying no major skewness in the pricing.
+    - Bell-shaped distribution: The price distribution appears to follow a normal distribution, meaning that most laptops are priced around the average (centered around 11).
+    - Symmetry: The distribution is relatively symmetrical, implying no major skewness in the pricing.
     """)
     st.subheader("RAM vs Price")
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -51,8 +51,8 @@ if option == "Data Exploration":
     st.pyplot(fig)
     st.subheader("Insgihts: ")
     st.markdown("""
-    - **Positive Correlation: As the Ram increases then the price in lakhs also increases.
-    - **I found one outliner at 64 GB which ranges the cost of above 12 lakhs.
+    - Positive Correlation: As the Ram increases then the price in lakhs also increases.
+    - I found one outliner at 64 GB which ranges the cost of above 12 lakhs.
     """)
     st.subheader("Company vs Price")
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -62,8 +62,8 @@ if option == "Data Exploration":
     st.pyplot(fig)
     st.subheader("Insights: ")
     st.markdown("""
-    - **Apple and Razer have the highest median prices, with wide variability, indicating that these brands offer a range of laptops from mid-range to high-end.
-    - **Chuwi shows a very compact price range, focused entirely in the budget segment.
+    - Apple and Razer have the highest median prices, with wide variability, indicating that these brands offer a range of laptops from mid-range to high-end.
+    - Chuwi shows a very compact price range, focused entirely in the budget segment.
     """)
 
 elif option == "Price Prediction":
